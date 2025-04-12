@@ -8,4 +8,4 @@ app = FastAPI(debug=True)
 app.include_router(appointment_router, prefix="/appointments")
 
 # Include Google OAuth router
-app.include_router(google_auth.router, prefix="/google_auth")
+app.include_router(google_auth.router, prefix="/auth/google")

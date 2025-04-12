@@ -14,10 +14,10 @@ import pytest
 def test_login_redirect(client, monkeypatch):
     # Set environment variables for Google OAuth configuration
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "test_client_id")
-    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://testserver/google_auth/callback")
+    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://testserver/auth/google/callback")
 
     # Use follow_redirects=False to capture the initial redirection response
-    response = client.get("/google_auth/login", follow_redirects=False)
+    response = client.get("/auth/google/login", follow_redirects=False)
     # Check for redirection status code (307 Temporary Redirect or 302 Found)
     assert response.status_code in (307, 302)
     # Verify that the oauth_state cookie is set
@@ -55,10 +55,10 @@ def test_callback_success(client, monkeypatch):
     # Set environment variables for Google OAuth configuration
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "test_client_id")
     monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test_client_secret")
-    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://testserver/google_auth/callback")
+    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://testserver/auth/google/callback")
 
     # Simulate a callback request with matching state and code
-    callback_url = "/google_auth/callback?state=test_state_token&code=test_code"
+    callback_url = "/auth/google/callback?state=test_state_token&code=test_code"
     # Set the oauth_state cookie in the request
     response = client.get(callback_url, cookies={"oauth_state": state_token})
     assert response.status_code == 200
@@ -73,7 +73,7 @@ def test_callback_success(client, monkeypatch):
 
 def test_callback_invalid_state(client):
     # State in cookie does not match query parameter
-    callback_url = "/google_auth/callback?state=invalid_state&code=test_code"
+    callback_url = "/auth/google/callback?state=invalid_state&code=test_code"
     response = client.get(callback_url, cookies={"oauth_state": "different_state"})
     assert response.status_code == 400
     data = response.json()
@@ -83,7 +83,7 @@ def test_callback_invalid_state(client):
 # Test /callback with missing code parameter
 
 def test_callback_missing_code(client):
-    callback_url = "/google_auth/callback?state=test_state_token"
+    callback_url = "/auth/google/callback?state=test_state_token"
     response = client.get(callback_url, cookies={"oauth_state": "test_state_token"})
     assert response.status_code == 400
     data = response.json()
@@ -106,9 +106,9 @@ def test_token_exchange_failure(client, monkeypatch):
     # Set environment variables for Google OAuth configuration
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "test_client_id")
     monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test_client_secret")
-    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://testserver/google_auth/callback")
+    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://testserver/auth/google/callback")
 
-    callback_url = "/google_auth/callback?state=test_state_token&code=test_code"
+    callback_url = "/auth/google/callback?state=test_state_token&code=test_code"
     response = client.get(callback_url, cookies={"oauth_state": "test_state_token"})
     assert response.status_code == 400
     data = response.json()
