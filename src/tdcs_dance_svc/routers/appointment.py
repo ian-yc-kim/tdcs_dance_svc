@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from tdcs_dance_svc.models.base import get_db
 from tdcs_dance_svc.models.appointment import Appointment
 from tdcs_dance_svc.notification import notify_instructor
+from tdcs_dance_svc.email_reminder import schedule_email_reminder
 
 router = APIRouter()
 
@@ -66,6 +67,12 @@ def book_appointment(request: AppointmentBookingRequest, db: Session = Depends(g
         db.add(new_appointment)
         db.commit()
         db.refresh(new_appointment)
+
+        # Schedule email reminder without affecting booking confirmation
+        try:
+            schedule_email_reminder(new_appointment)
+        except Exception as e:
+            logging.error(e, exc_info=True)
 
         try:
             notify_instructor(new_appointment)
