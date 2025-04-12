@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from tdcs_dance_svc.models.base import get_db
 from tdcs_dance_svc.models.appointment import Appointment
+from tdcs_dance_svc.notification import notify_instructor
 
 router = APIRouter()
 
@@ -28,6 +29,7 @@ class AppointmentBookingResponse(BaseModel):
 
 
 @router.post("/book", response_model=AppointmentBookingResponse)
+
 def book_appointment(request: AppointmentBookingRequest, db: Session = Depends(get_db)):
     try:
         # Convert provided times to UTC using the provided timezone
@@ -64,6 +66,11 @@ def book_appointment(request: AppointmentBookingRequest, db: Session = Depends(g
         db.add(new_appointment)
         db.commit()
         db.refresh(new_appointment)
+
+        try:
+            notify_instructor(new_appointment)
+        except Exception as e:
+            logging.error(e, exc_info=True)
 
         appointment_response = AppointmentBookingResponse(
             appointment_id=new_appointment.id,
